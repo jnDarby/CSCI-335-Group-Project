@@ -2,123 +2,36 @@ import joblib
 import numpy as np
 import pandas as pd
 
-from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor, VotingRegressor
-from sklearn.impute import SimpleImputer
+from sklearn.ensemble import VotingRegressor
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
-from sklearn.neural_network import MLPRegressor
-from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder, StandardScaler
-from sklearn.svm import SVR
+from sklearn.base import clone
+
+from randomForest import build_pipeline as build_rf_pipeline
+from svm_model import build_pipeline as build_svm_pipeline
+from ann_model import build_pipeline as build_ann_pipeline
+from randomForest import load_and_clean_data
 
 
 MODEL_FILE = "ensemble_used_car_price_model.joblib"
 
-RELEVANT_COLUMNS = [
-    "id", "price", "year", "manufacturer", "model", "condition",
-    "cylinders", "fuel", "odometer", "title_status",
-    "transmission", "drive", "type", "paint_color"
-]
 
-TARGET = "price"
-
-
-def load_and_clean_data(csv_file):
-    data = pd.read_csv(csv_file, usecols=RELEVANT_COLUMNS)
-
-    data = data.dropna(subset=[TARGET, "year", "manufacturer", "model", "odometer"])
-
-    data = data[data["price"].between(500, 100000)]
-    data = data[data["year"].between(1990, 2026)]
-    data = data[data["odometer"].between(0, 400000)]
-
-    categorical_cols = [
-        "manufacturer", "model", "condition", "cylinders", "fuel",
-        "title_status", "transmission", "drive", "type", "paint_color"
-    ]
-
-    for col in categorical_cols:
-        data[col] = data[col].astype(str).str.strip().str.lower()
-
-    return data
-
-
-def build_preprocessor():
-    numeric_features = ["year", "odometer"]
-    categorical_features = [
-        "manufacturer", "model", "condition", "cylinders", "fuel",
-        "title_status", "transmission", "drive", "type", "paint_color"
-    ]
-
-    numeric_transformer = Pipeline(steps=[
-        ("imputer", SimpleImputer(strategy="median")),
-        ("scaler", StandardScaler())
-    ])
-
-    categorical_transformer = Pipeline(steps=[
-        ("imputer", SimpleImputer(strategy="most_frequent")),
-        ("onehot", OneHotEncoder(handle_unknown="ignore"))
-    ])
-
-    preprocessor = ColumnTransformer(
-        transformers=[
-            ("num", numeric_transformer, numeric_features),
-            ("cat", categorical_transformer, categorical_features)
-        ]
-    )
-
-    return preprocessor
-
-
-def build_ensemble_pipeline():
-    preprocessor = build_preprocessor()
-
-    rf_model = RandomForestRegressor(
-        n_estimators=300,
-        max_depth=20,
-        min_samples_leaf=2,
-        random_state=42,
-        n_jobs=-1
-    )
-
-    svr_model = SVR(
-        kernel="rbf",
-        C=50,
-        epsilon=0.1,
-        gamma="scale"
-    )
-
-    ann_model = MLPRegressor(
-        hidden_layer_sizes=(128, 64),
-        activation="relu",
-        solver="adam",
-        alpha=0.001,
-        batch_size=64,
-        learning_rate_init=0.001,
-        max_iter=500,
-        early_stopping=True,
-        validation_fraction=0.1,
-        n_iter_no_change=15,
-        random_state=42
-    )
+def build_pipeline():
+    rf_pipeline = clone(build_rf_pipeline())
+    svm_pipeline = clone(build_svm_pipeline())
+    ann_pipeline = clone(build_ann_pipeline())
 
     ensemble = VotingRegressor(
         estimators=[
-            ("rf", rf_model),
-            ("svr", svr_model),
-            ("ann", ann_model)
+            ("rf", rf_pipeline),
+            ("svm", svm_pipeline),
+            ("ann", ann_pipeline)
         ],
         weights=[3, 2, 2],
         n_jobs=-1
     )
 
-    pipeline = Pipeline(steps=[
-        ("preprocessor", preprocessor),
-        ("model", ensemble)
-    ])
-
-    return pipeline
+    return ensemble
 
 
 def train_model(csv_file="parsed_data.csv"):
@@ -132,10 +45,10 @@ def train_model(csv_file="parsed_data.csv"):
         X, y, test_size=0.2, random_state=42
     )
 
-    pipeline = build_ensemble_pipeline()
-    pipeline.fit(X_train, y_train)
+    model = build_pipeline()
+    model.fit(X_train, y_train)
 
-    pred_log = pipeline.predict(X_test)
+    pred_log = model.predict(X_test)
     predictions = np.expm1(pred_log)
     actual = np.expm1(y_test)
 
@@ -147,10 +60,10 @@ def train_model(csv_file="parsed_data.csv"):
     print(f"Ensemble RMSE: {rmse:.2f}")
     print(f"Ensemble R^2:  {r2:.4f}")
 
-    joblib.dump(pipeline, MODEL_FILE)
+    joblib.dump(model, MODEL_FILE)
     print(f"Model saved to {MODEL_FILE}")
 
-    return pipeline
+    return model
 
 
 def predict_price(car_dict, model_file=MODEL_FILE):
