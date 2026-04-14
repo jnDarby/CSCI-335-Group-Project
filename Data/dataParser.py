@@ -27,9 +27,9 @@ def parse_data(file_path):
     relevant_columns = ['id', 'price', 'year', 'manufacturer', 'model', 'condition', 'cylinders', 'fuel', 'odometer', 'title_status', 'transmission', 'drive', 'type', 'paint_color']
     df = df[relevant_columns]
     # Create new file using selected values
-    df.to_csv('parsed_data.csv', index=False)
+    df.to_csv('parsedData.csv', index=False)
     # Save the data and safely export it to a new file
-    print("Data parsed and saved to 'parsed_data.csv'.")
+    print("Data parsed and saved to 'parsedData.csv'.")
 
 if __name__ == "__main__":
     parse_data('data.csv')
