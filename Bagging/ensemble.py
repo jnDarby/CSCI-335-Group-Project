@@ -3,15 +3,17 @@ import numpy as np
 import pandas as pd
 
 from sklearn.compose import ColumnTransformer
+from sklearn.ensemble import RandomForestRegressor, VotingRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.neural_network import MLPRegressor
 from sklearn.pipeline import Pipeline
 from sklearn.preprocessing import OneHotEncoder, StandardScaler
+from sklearn.svm import SVR
 
 
-MODEL_FILE = "ann_used_car_price_model.joblib"
+MODEL_FILE = "ensemble_used_car_price_model.joblib"
 
 RELEVANT_COLUMNS = [
     "id", "price", "year", "manufacturer", "model", "condition",
@@ -42,7 +44,7 @@ def load_and_clean_data(csv_file):
     return data
 
 
-def build_pipeline():
+def build_preprocessor():
     numeric_features = ["year", "odometer"]
     categorical_features = [
         "manufacturer", "model", "condition", "cylinders", "fuel",
@@ -66,7 +68,28 @@ def build_pipeline():
         ]
     )
 
-    model = MLPRegressor(
+    return preprocessor
+
+
+def build_ensemble_pipeline():
+    preprocessor = build_preprocessor()
+
+    rf_model = RandomForestRegressor(
+        n_estimators=300,
+        max_depth=20,
+        min_samples_leaf=2,
+        random_state=42,
+        n_jobs=-1
+    )
+
+    svr_model = SVR(
+        kernel="rbf",
+        C=50,
+        epsilon=0.1,
+        gamma="scale"
+    )
+
+    ann_model = MLPRegressor(
         hidden_layer_sizes=(128, 64),
         activation="relu",
         solver="adam",
@@ -80,9 +103,19 @@ def build_pipeline():
         random_state=42
     )
 
+    ensemble = VotingRegressor(
+        estimators=[
+            ("rf", rf_model),
+            ("svr", svr_model),
+            ("ann", ann_model)
+        ],
+        weights=[3, 2, 2],
+        n_jobs=-1
+    )
+
     pipeline = Pipeline(steps=[
         ("preprocessor", preprocessor),
-        ("model", model)
+        ("model", ensemble)
     ])
 
     return pipeline
@@ -99,7 +132,7 @@ def train_model(csv_file="parsed_data.csv"):
         X, y, test_size=0.2, random_state=42
     )
 
-    pipeline = build_pipeline()
+    pipeline = build_ensemble_pipeline()
     pipeline.fit(X_train, y_train)
 
     pred_log = pipeline.predict(X_test)
@@ -110,9 +143,9 @@ def train_model(csv_file="parsed_data.csv"):
     rmse = mean_squared_error(actual, predictions) ** 0.5
     r2 = r2_score(actual, predictions)
 
-    print(f"MAE:  {mae:.2f}")
-    print(f"RMSE: {rmse:.2f}")
-    print(f"R^2:  {r2:.4f}")
+    print(f"Ensemble MAE:  {mae:.2f}")
+    print(f"Ensemble RMSE: {rmse:.2f}")
+    print(f"Ensemble R^2:  {r2:.4f}")
 
     joblib.dump(pipeline, MODEL_FILE)
     print(f"Model saved to {MODEL_FILE}")
