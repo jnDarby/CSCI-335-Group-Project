@@ -25,7 +25,7 @@ def clean_car_dataframe(car_df):
     return car_df
 
 
-def load_or_train_individual_model(model_file, train_function, csv_file="parsed_data.csv"):
+def load_or_train_individual_model(model_file, train_function, csv_file="../Data/parsedData.csv"):
     model_path = Path(model_file)
 
     if model_path.exists():
@@ -34,7 +34,7 @@ def load_or_train_individual_model(model_file, train_function, csv_file="parsed_
     return train_function(csv_file)
 
 
-def load_or_train_all_models(csv_file="parsed_data.csv"):
+def load_or_train_all_models(csv_file="../Data/parsedData.csv"):
     rf_model = load_or_train_individual_model(RF_MODEL_FILE, train_rf_model, csv_file)
     svm_model = load_or_train_individual_model(SVM_MODEL_FILE, train_svm_model, csv_file)
     ann_model = load_or_train_individual_model(ANN_MODEL_FILE, train_ann_model, csv_file)
