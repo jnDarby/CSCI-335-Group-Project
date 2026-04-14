@@ -81,7 +81,8 @@ def build_pipeline():
     return pipeline
 
 
-def train_model(csv_file="Data/parsedData.csv"):
+def train_model(csv_file):
+    csv_file="Data/parsedData.csv"
     data = load_and_clean_data(csv_file)
     print(f"Data loaded. Rows: {len(data)}")
 
