@@ -130,29 +130,3 @@ def predict_price(car_dict, model_file=MODEL_FILE):
 
     pred_log = model.predict(car_df)[0]
     return np.expm1(pred_log)
-
-
-def main():
-    train_model("parsed_data.csv")
-
-    example_car = {
-        "year": 2015,
-        "manufacturer": "toyota",
-        "model": "camry",
-        "condition": "good",
-        "cylinders": "4 cylinders",
-        "fuel": "gas",
-        "odometer": 85000,
-        "title_status": "clean",
-        "transmission": "automatic",
-        "drive": "fwd",
-        "type": "sedan",
-        "paint_color": "silver"
-    }
-
-    estimated_price = predict_price(example_car)
-    print(f"Estimated price: ${estimated_price:,.2f}")
-
-
-if __name__ == "__main__":
-    main()

@@ -3,9 +3,9 @@ import numpy as np
 import pandas as pd
 from pathlib import Path
 
-from randomForest import train_model as train_rf_model
-from svm import train_model as train_svm_model
-from ann import train_model as train_ann_model
+from .randomForest import train_model as train_rf_model
+from .svm import train_model as train_svm_model
+from .ann import train_model as train_ann_model
 
 RF_MODEL_FILE = "random_forest_used_car_price_model.joblib"
 SVM_MODEL_FILE = "svm_used_car_price_model.joblib"
