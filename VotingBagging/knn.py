@@ -3,15 +3,15 @@ import numpy as np
 import pandas as pd
 
 from sklearn.compose import ColumnTransformer
-from sklearn.ensemble import RandomForestRegressor
 from sklearn.impute import SimpleImputer
 from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
 from sklearn.model_selection import train_test_split
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 
-MODEL_FILE = "random_forest_used_car_price_model.joblib"
+MODEL_FILE = "knn_used_car_price_model.joblib"
 
 RELEVANT_COLUMNS = [
     "id", "price", "year", "manufacturer", "model", "condition",
@@ -50,7 +50,8 @@ def build_pipeline():
     ]
 
     numeric_transformer = Pipeline(steps=[
-        ("imputer", SimpleImputer(strategy="median"))
+        ("imputer", SimpleImputer(strategy="median")),
+        ("scaler", StandardScaler())
     ])
 
     categorical_transformer = Pipeline(steps=[
@@ -65,12 +66,10 @@ def build_pipeline():
         ]
     )
 
-    model = RandomForestRegressor(
-        n_estimators=300,
-        max_depth=20,
-        min_samples_leaf=2,
-        random_state=42,
-        n_jobs=-1
+    model = KNeighborsRegressor(
+        n_neighbors=5,
+        weights="distance",
+        metric="minkowski"
     )
 
     pipeline = Pipeline(steps=[
@@ -88,12 +87,10 @@ def train_model(csv_file="Data/parsedData.csv"):
     X = data.drop(columns=["price", "id"])
     y = np.log1p(data["price"])
 
-    print("Splitting data into train and test sets...")
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42
     )
 
-    print("Training Random Forest model...")
     pipeline = build_pipeline()
     pipeline.fit(X_train, y_train)
 
@@ -105,9 +102,9 @@ def train_model(csv_file="Data/parsedData.csv"):
     rmse = mean_squared_error(actual, predictions) ** 0.5
     r2 = r2_score(actual, predictions)
 
-    print(f"MAE:  {mae:.2f}")
-    print(f"RMSE: {rmse:.2f}")
-    print(f"R^2:  {r2:.4f}")
+    print(f"KNN MAE:  {mae:.2f}")
+    print(f"KNN RMSE: {rmse:.2f}")
+    print(f"KNN R^2:  {r2:.4f}")
 
     joblib.dump(pipeline, MODEL_FILE)
     print(f"Model saved to {MODEL_FILE}")

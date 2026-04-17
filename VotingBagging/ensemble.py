@@ -6,10 +6,13 @@ from pathlib import Path
 from .randomForest import train_model as train_rf_model
 from .svm import train_model as train_svm_model
 from .ann import train_model as train_ann_model
+from .knn import train_model as train_knn_model
+
 
 RF_MODEL_FILE = "random_forest_used_car_price_model.joblib"
 SVM_MODEL_FILE = "svm_used_car_price_model.joblib"
 ANN_MODEL_FILE = "ann_used_car_price_model.joblib"
+KNN_MODEL_FILE = "knn_used_car_price_model.joblib"
 
 
 def clean_car_dataframe(car_df):
@@ -25,7 +28,7 @@ def clean_car_dataframe(car_df):
     return car_df
 
 
-def load_or_train_individual_model(model_file, train_function, csv_file="../Data/parsedData.csv"):
+def load_or_train_individual_model(model_file, train_function, csv_file="Data/parsedData.csv"):
     model_path = Path(model_file)
 
     if model_path.exists():
@@ -34,22 +37,32 @@ def load_or_train_individual_model(model_file, train_function, csv_file="../Data
     return train_function(csv_file)
 
 
-def load_or_train_all_models(csv_file):
-    csv_file="Data/parsedData.csv"
+def load_or_train_all_models(csv_file="Data/parsedData.csv"):
+    print("Loading or training Random Forest model...")
     rf_model = load_or_train_individual_model(RF_MODEL_FILE, train_rf_model, csv_file)
+    print("Loading or training SVM model...")
     svm_model = load_or_train_individual_model(SVM_MODEL_FILE, train_svm_model, csv_file)
+    print("Loading or training ANN model...")
     ann_model = load_or_train_individual_model(ANN_MODEL_FILE, train_ann_model, csv_file)
+    print("Loading or training KNN model...")
+    knn_model = load_or_train_individual_model(KNN_MODEL_FILE, train_knn_model, csv_file)
 
     return {
         "rf": rf_model,
         "svm": svm_model,
-        "ann": ann_model
+        "ann": ann_model,
+        "knn": knn_model
     }
 
 
 def ensemble_predict_log(car_df, models, weights=None):
     if weights is None:
-        weights = {"rf": 3, "svm": 2, "ann": 2}
+        weights = {
+            "rf": 3,
+            "svm": 2,
+            "ann": 2,
+            "knn": 2
+        }
 
     predictions = {
         name: model.predict(car_df)
@@ -60,7 +73,3 @@ def ensemble_predict_log(car_df, models, weights=None):
     total_weight = sum(weights.values())
 
     return weighted_sum / total_weight
-
-
-if __name__ == "__main__":
-    main()
