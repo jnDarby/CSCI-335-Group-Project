@@ -62,7 +62,3 @@ def ensemble_predict_log(car_df, models, weights=None):
     total_weight = sum(weights.values())
 
     return weighted_sum / total_weight
-
-
-if __name__ == "__main__":
-    main()
