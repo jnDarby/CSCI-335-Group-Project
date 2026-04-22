@@ -22,24 +22,24 @@ RELEVANT_COLUMNS = [
 TARGET = "price"
 
 
-def load_and_clean_data(csv_file):
-    data = pd.read_csv(csv_file, usecols=RELEVANT_COLUMNS)
+# def load_and_clean_data(csv_file):
+#     data = pd.read_csv(csv_file, usecols=RELEVANT_COLUMNS)
 
-    data = data.dropna(subset=[TARGET, "year", "manufacturer", "model", "odometer"])
+#     data = data.dropna(subset=[TARGET, "year", "manufacturer", "model", "odometer"])
 
-    data = data[data["price"].between(5000, 100000)]
-    data = data[data["year"].between(1990, 2026)]
-    data = data[data["odometer"].between(0, 400000)]
+#     data = data[data["price"].between(5000, 100000)]
+#     data = data[data["year"].between(1990, 2026)]
+#     data = data[data["odometer"].between(0, 400000)]
 
-    categorical_cols = [
-        "manufacturer", "model", "condition", "cylinders", "fuel",
-        "title_status", "transmission", "drive", "type", "paint_color"
-    ]
+#     categorical_cols = [
+#         "manufacturer", "model", "condition", "cylinders", "fuel",
+#         "title_status", "transmission", "drive", "type", "paint_color"
+#     ]
 
-    for col in categorical_cols:
-        data[col] = data[col].astype(str).str.strip().str.lower()
+#     for col in categorical_cols:
+#         data[col] = data[col].astype(str).str.strip().str.lower()
 
-    return data
+#     return data
 
 
 def build_pipeline():
@@ -87,13 +87,12 @@ def build_pipeline():
 
     return pipeline
 
+#train_model is now passed train_df
+def train_model(train_df):
+    print(f"Data loaded. Rows: {len(train_df)}")
 
-def train_model(csv_file="Data/parsedData.csv"):
-    data = load_and_clean_data(csv_file)
-    print(f"Data loaded. Rows: {len(data)}")
-
-    X = data.drop(columns=["price", "id"])
-    y = np.log1p(data["price"])
+    X = train_df.drop(columns=["price", "id"])
+    y = np.log1p(train_df["price"])
 
     X_train, X_test, y_train, y_test = train_test_split(
         X, y, test_size=0.2, random_state=42

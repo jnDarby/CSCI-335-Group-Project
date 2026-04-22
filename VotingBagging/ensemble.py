@@ -25,7 +25,7 @@ def clean_car_dataframe(car_df):
     return car_df
 
 
-def load_or_train_individual_model(model_file, train_function, csv_file="../Data/parsedData.csv"):
+def load_or_train_individual_model(model_file, train_function, train_df):
     model_path = Path(model_file)
 
     if model_path.exists():
@@ -33,14 +33,14 @@ def load_or_train_individual_model(model_file, train_function, csv_file="../Data
         return joblib.load(model_file)
 
     print("No Existing Model Found, Training Model")
-    return train_function(csv_file)
+    return train_function(train_df)
 
 
-def load_or_train_all_models(csv_file):
+def load_or_train_all_models(train_df):
     csv_file="Data/parsedData.csv"
-    rf_model = load_or_train_individual_model(RF_MODEL_FILE, train_rf_model, csv_file)
-    svm_model = load_or_train_individual_model(SVM_MODEL_FILE, train_svm_model, csv_file)
-    ann_model = load_or_train_individual_model(ANN_MODEL_FILE, train_ann_model, csv_file)
+    rf_model = load_or_train_individual_model(RF_MODEL_FILE, train_rf_model, train_df)
+    svm_model = load_or_train_individual_model(SVM_MODEL_FILE, train_svm_model, train_df)
+    ann_model = load_or_train_individual_model(ANN_MODEL_FILE, train_ann_model, train_df)
 
     return {
         "rf": rf_model,
