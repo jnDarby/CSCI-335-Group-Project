@@ -5,7 +5,7 @@ from sklearn.metrics import mean_absolute_error, median_absolute_error, max_erro
 from VotingBagging import ensemble
 
 
-def compare_single_car(car_dict, actual_price=None, csv_file="parsedData.csv"):
+def compare_single_car(car_dict, actual_price=None, csv_file="Data/parsedData.csv"):
     models = ensemble.load_or_train_all_models(csv_file)
 
     car_df = pd.DataFrame([car_dict])
@@ -26,7 +26,7 @@ def compare_single_car(car_dict, actual_price=None, csv_file="parsedData.csv"):
 
     return predicted_price
 
-def compare_top_5000_cars(csv_file="parsedData.csv", top_n=5000):
+def compare_top_5000_cars(csv_file="Data/parsedData.csv", top_n=5000):
     df = pd.read_csv(csv_file).copy()
 
     # Adjust this if your target column has a different name
@@ -34,7 +34,7 @@ def compare_top_5000_cars(csv_file="parsedData.csv", top_n=5000):
 
     df = df.dropna(subset=[target_col])
 
-    train_df = df.iloc[top_n:].copy()
+    train_df = df.iloc[top_n:35000].copy()
     valid_df = df.iloc[:top_n].copy()
 
     train_df = ensemble.clean_car_dataframe(train_df)
@@ -77,7 +77,7 @@ def compare_top_5000_cars(csv_file="parsedData.csv", top_n=5000):
 
 
 def main():
-    csv_file = "parsed_data.csv"
+    csv_file = "Data/parsedData.csv"
 
     results = compare_top_5000_cars(csv_file=csv_file, top_n=5000)
 
