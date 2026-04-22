@@ -29,8 +29,10 @@ def load_or_train_individual_model(model_file, train_function, csv_file="../Data
     model_path = Path(model_file)
 
     if model_path.exists():
+        print("Existing Model Found, Loading Model")
         return joblib.load(model_file)
 
+    print("No Existing Model Found, Training Model")
     return train_function(csv_file)
 
 
