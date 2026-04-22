@@ -26,7 +26,7 @@ def compare_single_car(car_dict, actual_price=None, csv_file="parsedData.csv"):
 
     return predicted_price
 
-def compare_top_5000_cars(csv_file="parsed_data.csv", top_n=5000):
+def compare_top_5000_cars(csv_file="parsedData.csv", top_n=5000):
     df = pd.read_csv(csv_file).copy()
 
     # Adjust this if your target column has a different name
