@@ -99,9 +99,24 @@ def train_model(csv_file="Data/parsedData.csv"):
         X, y, test_size=0.2, random_state=42
     )
 
+    print("Starting model training...")
+    
+    # If your pipeline contains MLPRegressor, access it directly
     pipeline = build_pipeline()
+    
+    # Get the neural network from the pipeline (adjust index if needed)
+    nn = pipeline.named_steps['mlp']  # or whatever your MLP step is named
+    
+    # Set verbose=True to see iteration progress
+    nn.verbose = True
+    nn.max_iter = 1000  # Increase if needed
+    
+    print("Checkpoint 1: Pipeline built, starting fit...")
+    
     pipeline.fit(X_train, y_train)
-
+    
+    print("Checkpoint 2: Training complete, evaluating...")
+    
     pred_log = pipeline.predict(X_test)
     predictions = np.expm1(pred_log)
     actual = np.expm1(y_test)
@@ -110,10 +125,12 @@ def train_model(csv_file="Data/parsedData.csv"):
     rmse = mean_squared_error(actual, predictions) ** 0.5
     r2 = r2_score(actual, predictions)
 
-    print(f"MAE:  {mae:.2f}")
-    print(f"RMSE: {rmse:.2f}")
+    print("Checkpoint 3: Metrics calculated")
+    print(f"MAE:  ${mae:,.2f}")
+    print(f"RMSE: ${rmse:,.2f}")
     print(f"R^2:  {r2:.4f}")
 
+    print("Checkpoint 4: Saving model...")
     joblib.dump(pipeline, MODEL_FILE)
     print(f"Model saved to {MODEL_FILE}")
 
