@@ -67,13 +67,13 @@ def build_pipeline():
     )
 
     model = MLPRegressor(
-        hidden_layer_sizes=(128, 64),
+        hidden_layer_sizes=(32, 16),
         activation="relu",
         solver="adam",
-        alpha=0.001,
+        alpha=0.01,
         batch_size=64,
         learning_rate_init=0.001,
-        max_iter=500,
+        max_iter=200,
         early_stopping=True,
         validation_fraction=0.1,
         n_iter_no_change=15,
