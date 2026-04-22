@@ -1,5 +1,6 @@
 import numpy as np
 import pandas as pd
+from sklearn.metrics import mean_absolute_error, median_absolute_error, max_error
 
 from VotingBagging import ensemble
 
@@ -25,43 +26,54 @@ def compare_single_car(car_dict, actual_price=None, csv_file="parsed_data.csv"):
 
     return predicted_price
 
-def compare_top_5000_cars(car_df, csv_file="parsed_data.csv", top_n=5000):
-    df = pd.read_csv(csv_file)
+def compare_top_5000_cars(csv_file="parsed_data.csv", top_n=5000):
+    df = pd.read_csv(csv_file).copy()
 
-    # keep only rows with a known target if needed
-    # change 'price' to your actual target column name
-    df = df.dropna(subset=["price"]).copy()
+    # Adjust this if your target column has a different name
+    target_col = "price"
 
-    # top 5000 rows for testing, rest for training
-    test_df = df.head(top_n).copy()
+    df = df.dropna(subset=[target_col])
+
     train_df = df.iloc[top_n:].copy()
+    valid_df = df.iloc[:top_n].copy()
 
     train_df = ensemble.clean_car_dataframe(train_df)
-    test_df = ensemble.clean_car_dataframe(test_df)
+    valid_df = ensemble.clean_car_dataframe(valid_df)
 
     models = ensemble.load_or_train_all_models(csv_file)
 
-    # evaluate on the top 5000
-    y_true = test_df["price"].values
-    X_test = test_df.drop(columns=["price"])
+    X_train = train_df.drop(columns=[target_col])
+    y_train = train_df[target_col].values
 
-    pred_log = ensemble.ensemble_predict_log(X_test, models)
-    preds = np.expm1(pred_log)
+    X_valid = valid_df.drop(columns=[target_col])
+    y_valid = valid_df[target_col].values
 
-    abs_errors = np.abs(preds - y_true)
+    train_pred_log = ensemble.ensemble_predict_log(X_train, models)
+    valid_pred_log = ensemble.ensemble_predict_log(X_valid, models)
 
-    print(f"Evaluated on top {len(test_df)} cars")
-    print(f"MAE: ${abs_errors.mean():,.2f}")
-    print(f"Median AE: ${np.median(abs_errors):,.2f}")
-    print(f"Max AE: ${abs_errors.max():,.2f}")
+    train_pred = np.expm1(train_pred_log)
+    valid_pred = np.expm1(valid_pred_log)
 
-    return {
-        "mae": abs_errors.mean(),
-        "median_ae": np.median(abs_errors),
-        "max_ae": abs_errors.max(),
-        "predictions": preds,
-        "actuals": y_true
+    results = {
+        "train_mae": mean_absolute_error(y_train, train_pred),
+        "valid_mae": mean_absolute_error(y_valid, valid_pred),
+        "train_median_ae": median_absolute_error(y_train, train_pred),
+        "valid_median_ae": median_absolute_error(y_valid, valid_pred),
+        "train_max_ae": max_error(y_train, train_pred),
+        "valid_max_ae": max_error(y_valid, valid_pred),
     }
+
+    print("Training metrics:")
+    print(f"MAE:     ${results['train_mae']:,.2f}")
+    print(f"Median:  ${results['train_median_ae']:,.2f}")
+    print(f"MAX AE:  ${results['train_max_ae']:,.2f}")
+
+    print("\nValidation metrics:")
+    print(f"MAE:     ${results['valid_mae']:,.2f}")
+    print(f"Median:  ${results['valid_median_ae']:,.2f}")
+    print(f"MAX AE:  ${results['valid_max_ae']:,.2f}")
+
+    return results
 
 
 def main():
