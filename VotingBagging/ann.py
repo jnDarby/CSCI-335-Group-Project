@@ -106,7 +106,7 @@ def train_model(train_df):
     pipeline = build_pipeline()
     
     # Get the neural network from the pipeline (adjust index if needed)
-    nn = pipeline.named_steps['mlp']  # or whatever your MLP step is named
+    nn = pipeline.named_steps['model']  # or whatever your MLP step is named
     
     # Set verbose=True to see iteration progress
     nn.verbose = True
