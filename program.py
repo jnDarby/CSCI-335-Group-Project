@@ -5,7 +5,7 @@ from sklearn.metrics import mean_absolute_error, median_absolute_error, max_erro
 from VotingBagging import ensemble
 
 
-def compare_single_car(car_dict, actual_price=None, csv_file="parsed_data.csv"):
+def compare_single_car(car_dict, actual_price=None, csv_file="parsedData.csv"):
     models = ensemble.load_or_train_all_models(csv_file)
 
     car_df = pd.DataFrame([car_dict])
