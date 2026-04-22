@@ -37,7 +37,6 @@ def load_or_train_individual_model(model_file, train_function, train_df):
 
 
 def load_or_train_all_models(train_df):
-    csv_file="Data/parsedData.csv"
     rf_model = load_or_train_individual_model(RF_MODEL_FILE, train_rf_model, train_df)
     svm_model = load_or_train_individual_model(SVM_MODEL_FILE, train_svm_model, train_df)
     ann_model = load_or_train_individual_model(ANN_MODEL_FILE, train_ann_model, train_df)

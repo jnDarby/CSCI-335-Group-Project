@@ -82,8 +82,10 @@ def build_pipeline():
 
 
 def train_model(train_df):
-    print(f"Data loaded. Rows: {len(train_df)}")
-
+    train_df = train_df.copy()
+    train_df["price"] = pd.to_numeric(train_df["price"], errors='coerce')
+    train_df = train_df.dropna(subset=["price"])
+    
     X = train_df.drop(columns=["price", "id"])
     y = np.log1p(train_df["price"])
 

@@ -40,7 +40,7 @@ def compare_top_5000_cars(csv_file="Data/parsedData.csv", top_n=5000):
     train_df = ensemble.clean_car_dataframe(train_df)
     valid_df = ensemble.clean_car_dataframe(valid_df)
 
-    models = ensemble.load_or_train_all_models(csv_file)
+    models = ensemble.load_or_train_all_models(train_df)
 
     X_train = train_df.drop(columns=[target_col])
     y_train = train_df[target_col].values
