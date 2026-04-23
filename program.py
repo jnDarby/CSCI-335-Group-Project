@@ -34,7 +34,7 @@ def compare_top_5000_cars(csv_file="Data/parsedData.csv", top_n=5000):
 
     df = df.dropna(subset=[target_col])
 
-    train_df = df.iloc[top_n:35000].copy()
+    train_df = df.iloc[top_n:60000].copy()
     valid_df = df.iloc[:top_n].copy()
 
     train_df = ensemble.clean_car_dataframe(train_df)
@@ -80,11 +80,7 @@ def main():
     csv_file = "Data/parsedData.csv"
 
     results = compare_top_5000_cars(csv_file=csv_file, top_n=5000)
-
-    print("\nFinal results:")
-    print(f"MAE: ${results['mae']:,.2f}")
-    print(f"Median AE: ${results['median_ae']:,.2f}")
-    print(f"Max AE: ${results['max_ae']:,.2f}")
+    print("Complete!")
 
 
 if __name__ == "__main__":
