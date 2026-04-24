@@ -27,7 +27,7 @@ def load_and_clean_data(csv_file):
 
     data = data.dropna(subset=[TARGET, "year", "manufacturer", "model", "odometer"])
 
-    data = data[data["price"].between(500, 100000)]
+    data = data[data["price"].between(5000, 100000)]
     data = data[data["year"].between(1990, 2026)]
     data = data[data["odometer"].between(0, 400000)]
 
@@ -81,7 +81,8 @@ def build_pipeline():
     return pipeline
 
 
-def train_model(csv_file="Data/parsedData.csv"):
+def train_model(csv_file):
+    csv_file="Data/parsedData.csv"
     data = load_and_clean_data(csv_file)
     print(f"Data loaded. Rows: {len(data)}")
 
