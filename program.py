@@ -4,9 +4,10 @@ import pandas as pd
 from VotingBagging import ensemble
 import knn
 
-def evaluate_knn(csv_file="Data/parsedData.csv"):
+def evaluate_knn(csv_file="Data/parsedData.csv", output_csv="knn_results.csv"):
     import time
     import numpy as np
+    import pandas as pd
     from sklearn.metrics import mean_absolute_error, mean_squared_error, r2_score
     from sklearn.model_selection import train_test_split
 
@@ -14,54 +15,71 @@ def evaluate_knn(csv_file="Data/parsedData.csv"):
 
     print("1. Loading and cleaning dataset...")
     data = knn.load_and_clean_data(csv_file)
-    print(f"   Done. Rows loaded: {len(data)}")
+    print(f"   Rows loaded: {len(data)}")
 
     print("2. Preparing features and target...")
     X = data.drop(columns=["price", "id"])
     y = np.log1p(data["price"])
-    print("   Done.")
 
-    print("3. Splitting train/test data...")
+    print("3. Splitting train/test...")
     X_train, X_test, y_train, y_test = train_test_split(
-        X, y, test_size=0.2, random_state=42
+        X, y, test_size=0.20, random_state=42
     )
+
     print(f"   Train rows: {len(X_train)}")
     print(f"   Test rows:  {len(X_test)}")
 
-    print("4. Building KNN pipeline...")
+    print("4. Building model...")
     model = knn.build_pipeline()
-    print("   Done.")
 
-    print("5. Training model...")
+    print("5. Training...")
     model.fit(X_train, y_train)
-    print("   Training complete.")
 
-    print("6. Making predictions...")
+    print("6. Predicting...")
     pred_log = model.predict(X_test)
-    print("   Predictions complete.")
 
-    print("7. Converting predictions...")
-    predictions = np.expm1(pred_log)
+    print("7. Calculating metrics...")
     actual = np.expm1(y_test)
+    predicted = np.expm1(pred_log)
 
-    print("8. Calculating metrics...")
-    mae = mean_absolute_error(actual, predictions)
-    rmse = np.sqrt(mean_squared_error(actual, predictions))
-    r2 = r2_score(actual, predictions)
+    error = predicted - actual
+    abs_error = np.abs(error)
+    pct_error = (abs_error / actual) * 100
 
-    print("\n=== KNN Evaluation Results ===")
+    mae = mean_absolute_error(actual, predicted)
+    rmse = np.sqrt(mean_squared_error(actual, predicted))
+    r2 = r2_score(actual, predicted)
+
+    # Build export dataframe
+    results = X_test.copy().reset_index(drop=True)
+    results["ActualPrice"] = actual.reset_index(drop=True)
+    results["PredictedPrice"] = predicted
+    results["Error"] = error
+    results["AbsoluteError"] = abs_error
+    results["PercentError"] = pct_error
+
+    # Save detailed results
+    results.to_csv(output_csv, index=False)
+
+    # Save metrics summary
+    summary = pd.DataFrame([
+        ["MAE", mae],
+        ["RMSE", rmse],
+        ["R2", r2],
+        ["RowsTested", len(results)],
+        ["Seconds", round(time.time() - start_time, 2)]
+    ], columns=["Metric", "Value"])
+
+    summary.to_csv("knn_summary.csv", index=False)
+
+    print("\n=== KNN Results ===")
     print(f"MAE:  ${mae:,.2f}")
     print(f"RMSE: ${rmse:,.2f}")
     print(f"R²:   {r2:.4f}")
+    print(f"Saved detailed results to {output_csv}")
+    print("Saved summary to knn_summary.csv")
 
-    total_time = time.time() - start_time
-    print(f"\nTotal Time: {total_time:.2f} seconds")
-
-    return {
-        "MAE": mae,
-        "RMSE": rmse,
-        "R2": r2
-    }
+    return results
 
 def compare_single_car(car_dict, actual_price=None, csv_file="parsed_data.csv"):
     models = ensemble.load_or_train_all_models(csv_file)
